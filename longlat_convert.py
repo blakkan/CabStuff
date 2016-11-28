@@ -24,28 +24,39 @@ def forceAFloat(s):
 sc = SparkContext("local", "myApp", pyFiles=['borough_finder.py'] )
 sqlContext = SQLContext(sc)
 
-print "loadint textfile"
+print "loading textfile"
 
 distData = sc.textFile('file:///home/w205/longlat.csv')
-
-print distData.take(10)
 
 print "splitting"
 split_records = distData.map(lambda l: l.split(','))
 
-print split_records.take(10)
 
 the_time = time.time()
 
 #And putting the updated output into new tables
 print "starting mapping"
 j = split_records.map(lambda s: ( s[0], s[1], borough_finder.find_borough(
-	forceAFloat(s[0]),
-	forceAFloat(s[1])
+	forceAFloat(s[1]), #note swapping order here
+	forceAFloat(s[0])
 )))
-print "create data frame"
-LonLatMap = sqlContext.createDataFrame(j)
-print "save it to sql"
-LonLatMap.save("converted_lon_lat")
 
-print "Took %d seconds " % (time.time() - the_time)
+
+
+accumManhattan = sc.accumulator(0)
+accumTheBronx = sc.accumulator(0)
+accumQueens = sc.accumulator(0)
+accumBrooklyn = sc.accumulator(0)
+accumStatenIsland = sc.accumulator(0)
+accumNone = sc.accumulator(0)
+accumMystery = sc.accumulator(0)
+
+accumHash = { "None": accumNone, "Manhattan": accumManhattan, "The Bronx": accumTheBronx, "Staten Island": accumStatenIsland, "Queens": accumQueens, "Brooklyn": accumBrooklyn }
+
+
+j.foreach(lambda x: accumHash[x[2]].add(1))
+
+
+for key, value in accumHash.iteritems():
+  print "%s: %d" % ( key, value.value )
+

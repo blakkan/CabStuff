@@ -196,7 +196,6 @@ if 1:
     def find_borough( lat, long ):
 
         if long < -74.046478:  # Far west, should be Staten Island
-
             if staten_poly.contains_point((lat,long)):
                 return "Staten Island"
             elif manhattan_poly.contains_point((lat,long)):
@@ -211,7 +210,6 @@ if 1:
                 return "None"
 
         elif lat > 40.693256:   #northern area, try manhattan or bronx first
-
             if manhattan_poly.contains_point((lat,long)):
                 return "Manhattan"
             elif bronx_poly.contains_point((lat,long)):
