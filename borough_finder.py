@@ -208,7 +208,7 @@ if 1:
             elif brooklyn_poly.contains_point((lat,long)):
                 return "Brooklyn"
             else:
-                return None
+                return "None"
 
         elif lat > 40.693256:   #northern area, try manhattan or bronx first
 
@@ -223,7 +223,7 @@ if 1:
             elif staten_poly.contains_point((lat,long)):
                 return "Staten Island"
             else:
-                return None
+                return "None"
 
         else:  #southern area, try booklyn then queens
 
@@ -238,7 +238,7 @@ if 1:
             elif bronx_poly.contains_point((lat,long)):
                 return "The Bronx"
             else:
-                return None
+                return "None"
 
 
 ###
