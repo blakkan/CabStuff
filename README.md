@@ -54,5 +54,5 @@ Then script ride_prediction.py takes the forecast from postgres table "weather_p
 Tableau will serve data from the ride_prediction table.  The predicted number of pickups
  * for each borough
  * for each hour
- * of the next 6 days
+ * of the next 6 days  
 will be presented (along with appropriate graphs).   Users will also see the UTC timestamp of the last successful fetch of weather forecasts, to be informed in the (unlikely but possible) event that the forecast is out of date.  Our User-story is of a planner deciding how many taxi company vehicles to allocate to each borough, or for a ride hailing service to use to incentivize their drivers to position their private vehicles appropriately.
