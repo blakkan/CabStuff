@@ -2,7 +2,7 @@
 
 UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
 
-![Boroughs of New York City](https://github.com/blakkan/W205Project/blob/master/borough_color_light_outline_web2.png)
+![Boroughs of New York City](bourough_color_light_outline_web2.png)
 
 # Working notes
 
