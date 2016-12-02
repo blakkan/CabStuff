@@ -29,7 +29,7 @@ Pyspark map/lambda is used to perform this hash-join.
 
 ## Borough Identification transformation of Ride data
 
-Our customer use case is to plan allocation of taxi/ride-service vehicles to Boroughs, so the lat/long co-ordinates in the Ride Data must be converted to borough.
+Our customer use case is to plan allocation of taxi/ride-service vehicles to Boroughs, so the lat/long co-ordinates in the Ride Data must be converted to borough.  This is done in pyspark, with a program called hive_borough.py.  In turn, it runs borough_finder.py on each row of the Ride data.  Borough_finder.py (including its table of borough-bounding-polygons) is distributed by pyspark to all potential parallel processes (much like broadcast variables).   See the test script for example use (inculding counts using pyspark accumulator variables).
 
 We obtain this data by using the online SAAS at https://www.itouchmap.com/latlong.html to create bounding polygons for each borough.  Boroughs can be bounded with approximately 20 vertices (with water borders requiring fewer points, and complex street boundaries - such as between Brooklyn and Queens requiring more).  Note:  The points are defined by the project, not by the website, so there are not IP or Terms-of-Use issues.  The New York City government website was used as a reference for the borough borders (http://maps.nyc.gov/doitt/nycitymap/).
 
