@@ -185,6 +185,37 @@ if 1:
         [40.644143,-74.050598],
         [40.593682,-74.040985]
     ]))
+    
+    new_jersey_poly = mplPath.Path(np.array([
+        [40.459191,-74.233726],
+        [40.501644,-74.25975],
+        [40.525038,-74.248492],
+        [40.549774,-74.249176],
+        [40.558082,-74.229332],
+        [40.558082,-74.215942],
+        [40.590419,-74.205471],
+        [40.600492,-74.20039],
+        [40.606618,-74.204166],
+        [40.625903,-74.203136],
+        [40.632547,-74.200733],
+        [40.643359,-74.188545],
+        [40.646355,-74.184254],
+        [40.642317,-74.14151],
+        [40.650523,-74.086063],
+        [40.651825,-74.054649],
+        [40.699605,-74.02581],
+        [40.759407,-74.013039],
+        [40.826986,-73.96257],
+        [40.886896,-73.929474],
+        [40.992191,-73.891022],
+        [41.112176,-74.161285],
+        [41.021061,-74.209351],
+        [41.020025,-74.290375],
+        [40.857154,-74.422211],
+        [40.639714,-74.64743],
+        [40.534381,-74.504608],
+        [40.396468,-74.448303]
+    ]))
 
     # Outer chooser- does a coarse geographic check.  Depending on the result,
     # will optimize the order of the detailed check
@@ -195,8 +226,10 @@ if 1:
 
     def find_borough( lat, long ):
 
-        if long < -74.046478:  # Far west, should be Staten Island
-            if staten_poly.contains_point((lat,long)):
+        if long < -74.046478:  # Far west, should be Staten Island, or NJ
+            if new_jersey_poly.contains_point((lat,long):
+                return "New Jersey"
+            elif staten_poly.contains_point((lat,long)):
                 return "Staten Island"
             elif manhattan_poly.contains_point((lat,long)):
                 return "Manhattan"
@@ -214,6 +247,8 @@ if 1:
                 return "Manhattan"
             elif bronx_poly.contains_point((lat,long)):
                 return "The Bronx"
+            elif new_jersey_poly.contains_point((lat,long):
+                return "New Jersey"
             elif queens_poly.contains_point((lat,long)):
                 return "Queens"
             elif brooklyn_poly.contains_point((lat,long)):
@@ -229,6 +264,8 @@ if 1:
                 return "Brooklyn"
             elif queens_poly.contains_point((lat,long)):
                 return "Queens"
+            elif new_jersey_poly.contains_point((lat,long):
+                return "New Jersey"
             elif staten_poly.contains_point((lat,long)):
                 return "Staten Island"
             elif manhattan_poly.contains_point((lat,long)):
