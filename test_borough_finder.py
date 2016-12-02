@@ -5,7 +5,7 @@ print "one million borough lookups"
 
 start_time = time.time()
 
-for i in range(0,200000):
+for i in range(0,1000000/6):
   #should be Bronx
   if borough_finder.find_borough( 40.854453, -73.854218) != 'The Bronx':
     print "Error - didn't find Bronx on loop %d" % i
@@ -29,6 +29,11 @@ for i in range(0,200000):
   #should be Queens
   if borough_finder.find_borough( 40.713036,-73.874817) != "Queens":
     print "Error - didn't find Queens on loop %d" % i
+    exit()
+    
+  #should be New Jersey
+  if borough_finder.find_borough( 40.734181,-74.310425) != "New Jersey":
+    print "Error - didn't find New Jersey on loop %d" % i
     exit()
 
 duration = (time.time() - start_time)
