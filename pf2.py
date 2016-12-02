@@ -1,4 +1,22 @@
 #! /usr/bin/python
+#
+# pf2.py
+#
+# Script to pull over current NOAA weather forecast for New York/LaGuardia airport,
+# reformat it, and put it into a postgresql table
+#
+#  Id toes all this on a best efforts basis, but wraps the write to the postgres
+# table in a transaction, so should be an "all or nothing" update
+#
+#
+#  Usage:   No arguments, it just puts the output into table "weather_prediction"
+#
+# This could easily generalize to take a lat/long argument for the weather station,
+# or a name for the output table (or database, or user), but that's not needed
+# for the current purpose.
+#
+#
+
 import urllib2
 from lxml import etree
 
@@ -6,16 +24,26 @@ from lxml import etree
 
 uri = 'http://graphical.weather.gov/xml/sample_products/browser_interface/ndfdBrowserClientByDay.php'
 args = "lat=40.77&lon=-73.98&format=24+hourly&numDays=7" #new york city
+
+
+#
+# Go get the page
+#
 response = urllib2.urlopen(uri + '?' + args)
 the_page = response.read()
 
-#print the_page, for future reference
-fh = open("output.txt", "w")
-fh.write(the_page)
-fh.close
+
+
+#print the_page, for future reference (no longer done; but useful to add back in for debug)
+#fh = open("output.txt", "w")
+#fh.write(the_page)
+#fh.close
 
 
 
+#
+# Here we pars the tree
+#
 
 context = etree.XML(the_page)
 
@@ -89,6 +117,9 @@ for idx, val in enumerate(start_days_24):
 # put in database
 #
 import psycopg2
+
+# Better be able to open that database...
+
 try:
     conn = psycopg2.connect("dbname='postgres' user='postgres' host='localhost' password='pass'")
     conn.set_isolation_level(3)  #want to control our own committing
@@ -96,6 +127,9 @@ except:
     print "didn't connect to database"
     exit()
 
+
+# This whole step is because we're using postgres 8.4, which doesn't have an elegant way to not
+# throw a warning if we already have the table.
 
 cur = conn.cursor()
 cur.execute("""SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'weather_prediction';""")
@@ -112,6 +146,9 @@ cur.execute("""DELETE FROM weather_prediction;""")  #using delete rather than tr
                                                     #plays nicely with transactions
 
 
+#
+# Here's where we actually write into the table
+#
 for idx, val in enumerate(start_days_24[0:6]):
     #print idx, val, max_temps[idx], min_temps[idx], weathers[idx], prob_precip_24_hr[idx] #just for debug
     try:
