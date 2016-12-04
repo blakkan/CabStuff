@@ -130,6 +130,6 @@ The first "geoPy" method had the advantage of giving neighborhood, rather than b
 
 ## Future work, extensions, and challanges
 
- If we were developing a nation-wide system, pre-calcualating all the resuls could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
+ If we were developing a nation-wide system, pre-calcualating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
  
  We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   (This is on contrast to other areas, such as the San Francisco Bay, where there are significant microclimates).   Expansion of the system ot other metro areas might need to account for regional microclimates.
