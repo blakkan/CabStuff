@@ -134,7 +134,11 @@ The first point-in-polygon was satisfactory with respect to performance, but we 
 
 ## Future work and Extensions
 
+# Scale
+
 If we were developing a nation-wide system, pre-calculating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
+
+# Resolution of weather to small regions
 
 We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   This is on contrast to other areas, such as the San Francisco Bay, where there are significant regional microclimates.   Expansion of the system to other metro areas might need to account for regional microclimates.
 
