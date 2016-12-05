@@ -9,9 +9,9 @@ for company in ["yellow", "green", "fhv"]:
             s3_source_filename = "%s_tripdata_%s-%s.csv" % (company, year, month)
             local_filename = "%s_%s%s.csv" % (company, year, month)
             print("Starting transfer from s3 of %s to %s" % (s3_source_filename, local_filename))
-            os.system("wget https://s3.amazonaws.com/nyc-tlc/trip+data/%s --no-check-certificate --no-verbose" % s3_source_filename) or print("wget of %s failed" % s3_source_filename)
+            os.system("wget https://s3.amazonaws.com/nyc-tlc/trip+data/%s --no-check-certificate --no-verbose" % s3_source_filename)
 
-            os.system("tail -n +2 %s | python decimate.py 0.001 > %s" % (s3_source_filename, local_filename)) or print("tail of %s failed" % s3_source_filename)
+            os.system("tail -n +2 %s | python decimate.py 0.001 > %s" % (s3_source_filename, local_filename[0]))
             os.remove(s3_source_file_name)
             #hdfs dfs -put y_201601.csv /user/w205/yellow
             #rm y_201601.csv
