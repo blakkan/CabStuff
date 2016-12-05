@@ -1,4 +1,8 @@
 # run from folder want these to transfer through (doesn't make much difference, as original files get deleted)
+#
+# must have hdfs directories /user/w205/yellow, green, and fhv existing
+# and empty before running this.
+
 import os
 # putting into the /home/w205
 
