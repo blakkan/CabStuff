@@ -176,7 +176,7 @@ The assignment recommends getting a stripped-down version of the full system ("A
 
 One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on a parallel track:   One effort used a set of bounding polygons arouind each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast (120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}), but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
 
-# Look at the raw data, there may be surprises.
+## Look at the raw data, there may be surprises.
 
 A minor issue we found was the presence of a small number of "out-of-new-york-city" pickup locations.   Some were in Las Vegas, others were scattered around the country.  We think this may be from user error in some application (i.e. having the location where the trip was booked, rather than the actual pickup location).
 
@@ -184,6 +184,6 @@ The more profound thing we found:   The number of pickups in all of Staten Islan
 
 Other interesting items in the data (when perusing with HUE and Tableau):   Ridership is greater in the fall than the spring; and passenger loads per cap seem higher during particularly warm or particularly cold weather.
 
-# "Skew" of data size needs to be considered; in-memory hash-joins may be better than general database joins
+## "Skew" of data size needs to be considered; in-memory hash-joins may be better than general database joins
 
 An hourly prediction of a year's worth of activity is only 8760 elements.   Rather than doing a database join operation, pyspark (with broadcast variables of hashes, or hashes included in the shared functions) may be a better choice.   This was implemented in the hive_borough.py secirpt.
