@@ -132,27 +132,27 @@ The second was to use available python modules (including geoPy) which could do 
 
 The first point-in-polygon was satisfactory with respect to performance, but we are currently using the geoPy/Zipcode method.
 
-## Future work and Extensions
+# Future work and Extensions
 
-# Scale
+## Scale
 
 If we were developing a nation-wide system, pre-calculating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
 
-# Resolution of weather to small regions
+## Resolution of weather to small regions
 
 We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   This is on contrast to other areas, such as the San Francisco Bay, where there are significant regional microclimates.   Expansion of the system to other metro areas might need to account for regional microclimates.
 
-## Observations and notes on the development process
+# Observations and notes on the development process
 
-# Checkpointing is important
+## Data Checkpointing is important
 
 When working with large datasets (e.g. up to billions of raw records), we had several instances of multi-hour Data Ingress processes fail, resulting in up to half-day development delays.   This happened for several reasons:  Once when users - not realizing the task was underway, shut down the EC2 instance.  Other times when spark jobs were running with the same application name (which, if not unique in the system, will cause jobs to silently lock up).
 
-# "Mock" databases (or subsets of larger database) are important
+## "Mock" databases (or subsets of larger database) are important
 
 Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.01, for 1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv stochastically, rather than by stepping through the file with an interval.  We also incorporated a random seed argument, to assure we could make the decimation repeatable if necessary.
 
-# Rapid prototyping and unit testing are important.
+## Rapid prototyping and unit testing are important.
 
 The near-real time element of the project is the fetching of NOAA forecast data for the prediction model.  Early in the project, we mocked up a simple website to drive our "poll of NOAA and parse" functions.  Because this tool made it so easy to repeatedly test the NOAA interface, we found multiple problems:  (1) NOAA actually provides only 6.5 of forecast data for some weather parameters, not 7 days.  We stopped applications from erroring-out by using only the actual valid data (we picked 6 days).  See the figure below, note the missing value for predicted min. temperature on day 7.
 
@@ -160,11 +160,11 @@ The near-real time element of the project is the fetching of NOAA forecast data 
 
 (2) The NOAA interface has a highly variable response time - sometimes over 15 seconds.   The NOAA site overall appears to go down for minutes at a time, particularly in the early hours of the morning (Eastern Time).  [It is also possible that the NOAA website was recognizing too-frequent requests and throttling us; we never determined that.]   Based on this, we realized we needed to cache a local copy of the forecast, and periodically refresh it.  Had we not learned this early in the project, we would have developed a system which appeared to work in testing, but under higher load would have frequently failed.
 
-# Building the "Steel Thread" end-to-end preliminary version is a good idea.   We didn't do it.
+## Building the "Steel Thread" end-to-end preliminary version is a good idea.   We didn't do it.
 
 The assignment recommends getting a stripped-down version of the full system ("A Steel Thread") working early on, then adding to it.  We did our integration relatively late, after building ETL and Serving systems.   We did benefit from having mock databases to keep all elements being developed towards the same schema.   But we did have an integration phase at the end of the project which was lengthier than it might have been if we'd integrated earlier.
 
-# Developing features in parallel with competing implementations is good (if resources are available)
+## Developing features in parallel with competing implementations is good (if resources are available)
 
 One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on a parallel track:   One effort used a set of bounding polygons arouind each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast (120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}), but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
 
