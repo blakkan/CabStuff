@@ -14,6 +14,8 @@ We model cab (and ride-service) demand as a function of week-of-year, day-of-wee
 
 There are seven main pieces:
 
+![Architecture figure](ScaledArchitecturalDrawing2.png)
+
 ## 1 - Ride data ETL
 
 This is consolidated for several taxi/ride-hailing services (in hive).  Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup,
@@ -33,18 +35,22 @@ small compared to the ride pickup table (i.e. there are many taxi pickups per da
 
 Pyspark map/lambda is used to perform this hash-join.
 
-## 3 - Borough Identification transformation of Ride data
+## 3 - Local Region Identification transformation of Ride data
 
-Our customer use case is to plan allocation of taxi/ride-service vehicles to Boroughs, so the lat/long co-ordinates in the Ride Data must be converted to borough.  This is done in pyspark, with a program called hive_borough.py.  In turn, it runs borough_finder.py on each row of the Ride data.  Borough_finder.py (including its table of borough-bounding-polygons) is distributed by pyspark to all potential parallel processes (much like broadcast variables).   See the test script for example use (inculding counts using pyspark accumulator variables).
+Our customer use case is to plan allocation of taxi/ride-service vehicles to smaller retions of NYC, such as zip-codes or boroughs, so the lat/long co-ordinates in the Ride Data must be converted.  
+
+One method we used is to do this in pyspark, with a program called hive_borough.py.  In turn, it runs borough_finder.py on each row of the Ride data.  Borough_finder.py (including its table of borough-bounding-polygons) is distributed by pyspark to all potential parallel processes (much like broadcast variables).   See the test script for example use (inculding counts using pyspark accumulator variables).
 
 We obtain this data by using the online SAAS at https://www.itouchmap.com/latlong.html to create bounding polygons for each borough.  Boroughs can be bounded with approximately 20 vertices (with water borders requiring fewer points, and complex street boundaries - such as between Brooklyn and Queens requiring more).  Note:  The points are defined by the project, not by the website, so there are not IP or Terms-of-Use issues.  The New York City government website was used as a reference for the borough borders (http://maps.nyc.gov/doitt/nycitymap/).  
 
 Here is a sample of one of the bounding polygons, for the "pseudo-borough" of Eastern New Jersey.   (Which is obviously not part of New York City, but our analysis showed significant NYC taxi/ride pickups here, so we include it. (See comment in the section "Look at the raw data", below)
 
-
 ![Bounding Polygon for Eastern New Jersey region](NJ_outline.png)
 
 These immutable polygon vertices can be used with matplotlib's point-in-polygon library to provide a transform function for pyspark's map-lambda to add borough identifiers to the Ride data.
+
+
+Later in the project we determined our preferred method, however.  We currently use the geoPy module for reverse geocoding.  We were initially concerned that, because this module delegates reverse geocoding to a variety of online services, that it would be too slow for our volume of data.   However, the module's internal caching of regional co-ordinates ultimately proved to have acceptable performance, so is used for it's zipcode level resolution.
 
 
 ## 4 - Predictive model, with parameters
@@ -73,6 +79,8 @@ Tableau will serve data from the ride_prediction table.  The predicted number of
 will be presented (along with appropriate graphs).
 
 Users will also see the (UTC) timestamp of the last successful fetch of weather forecasts, to be informed in the event that the forecast is more than a few minutes out of date.  
+
+![Tableau Screenshot](Tableau.png)
 
 # Dependencies and operation
 
@@ -168,7 +176,7 @@ The assignment recommends getting a stripped-down version of the full system ("A
 
 One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on a parallel track:   One effort used a set of bounding polygons arouind each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast (120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}), but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
 
-# Look at the raw data, there may be surprises.
+## Look at the raw data, there may be surprises.
 
 A minor issue we found was the presence of a small number of "out-of-new-york-city" pickup locations.   Some were in Las Vegas, others were scattered around the country.  We think this may be from user error in some application (i.e. having the location where the trip was booked, rather than the actual pickup location).
 
@@ -176,6 +184,6 @@ The more profound thing we found:   The number of pickups in all of Staten Islan
 
 Other interesting items in the data (when perusing with HUE and Tableau):   Ridership is greater in the fall than the spring; and passenger loads per cap seem higher during particularly warm or particularly cold weather.
 
-# "Skew" of data size needs to be considered; in-memory hash-joins may be better than general database joins
+## "Skew" of data size needs to be considered; in-memory hash-joins may be better than general database joins
 
 An hourly prediction of a year's worth of activity is only 8760 elements.   Rather than doing a database join operation, pyspark (with broadcast variables of hashes, or hashes included in the shared functions) may be a better choice.   This was implemented in the hive_borough.py secirpt.
