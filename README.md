@@ -14,7 +14,7 @@ We model cab (and ride-service) demand as a function of week-of-year, day-of-wee
 
 There are seven main pieces:
 
-![Architecture figure](ScaledArchitecturalDrawing22.png)
+![Architecture figure](ScaledArchitecturalDrawing2.png)
 
 ## 1 - Ride data ETL
 
