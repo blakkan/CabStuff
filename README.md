@@ -18,8 +18,9 @@ There are seven main pieces.  Refer to figure 2.
 
 ## 1 - Ride data ETL
 
-This is consolidated for several taxi/ride-hailing services (in hive).  Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup,
-and number of passengers.  For our purposes, fare information, taxes, etc. are not retained)
+Ride data ETL consolidates .csv files provided monthly by taxi/ride service (yellow, green and FHV-For Hire Vehicles) in hive. Data is loaded to HDFS using TransferTaxi.py. This will handle loads for all months from July 2014 forward. During intial runs, separate script files were created for each type of taxi (yellow, green, and fhv - see supporting files). Although less efficient, this allowed closer monitoring and gathering of statistics directly during each file load. The python approach is the final approach, providing efficiency both in code and time. 
+Using the data in HDFS, external schema tables are created, using the CreateExternalData.sql. This follows the formatting provided by the NYC Taxi Commission. Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup, and number of passengers.   (For our purposes, fare information, taxes, etc. are not retained.)
+
 
 ## 2 - Historical Weather ETL and join to the Ride Data
 
@@ -34,6 +35,10 @@ We implement a hash-join to join weather information to the ride data with pyspa
 small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report (with 24-hr max/min temp and precipition) per day.  In-day variances are co-linear with hour-of-day, so will have input to our model.
 
 Pyspark map/lambda is used to perform this hash-join.
+
+The data flow for steps 1 - 3 (historical ride and weather ETL and joining) are illustrated in the image below:
+![Historical Data Flow figure](HistoricalDataFlow.png)
+
 
 ## 3 - Local Region Identification transformation of Ride data
 
