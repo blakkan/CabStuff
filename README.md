@@ -66,7 +66,7 @@ This will be pulled every 10 min from NOAA's XML service (http://graphical.weath
 
 Then script ride_prediction.py takes the forecast from postgres table "weather_prediction" and the model parameters from postgres (TBD) table, and produces postgres table ride_prediction.   ride_prediction.py can be run from the command line, but for production will be run via crontab (at 5, 15, 25, 35, 45, and 55 min after the hour).  The output of this table is: For each of 5 boroughs, for each of 6 days, for each hour in each day, a predicted number of large taxis (4 or more passengers) and small vehicles (3 or fewer passengers).  The timestamp of the weather_forecast used to generate the prediction is also passed through, so the user can verify the age of the forecast used for the predictions.
 
- This 720 row table (5 * 6 * 24) is kept in postgres.
+ This 720 row table (5 Boroughs * 6 Day Forecast * 24 hrs/day) is kept in postgres.
 
 ## 7 - Tableau presentation
 
@@ -162,9 +162,9 @@ Even the monthly partitions of the databases are large enough that some steps wi
 
 ## Rapid prototyping and unit testing are important.
 
-The near-real time element of the project is the fetching of NOAA forecast data for the prediction model.  Early in the project, we mocked up a simple website to drive our "poll of NOAA and parse" functions.  Because this tool made it so easy to repeatedly test the NOAA interface, we found multiple problems:  (1) NOAA actually provides only 6.5 of forecast data for some weather parameters, not 7 days.  We stopped applications from erroring-out by using only the actual valid data (we picked 6 days).  See the figure below, note the missing value for predicted min. temperature on day 7.
+The near-real time element of the project is the fetching of NOAA forecast data for the prediction model.  Early in the project, we mocked up a simple Ruby-on-Rails website to drive our "poll of NOAA and parse" functions.  Because this tool made it so easy to repeatedly test the NOAA interface, we found multiple problems:  (1) NOAA actually provides only 6.5 of forecast data for some weather parameters, not 7 days.  We stopped applications from erroring-out by using only the actual valid data (we picked 6 days).  See the figure below, note the missing value for predicted min. temperature on day 7.
 
-![Output of Weather Forecast](ForecastResults.png)  
+![NOAA Weather Forecast: Ruby-on-Rails output](ForecastResults2.png)  
 
 (2) The NOAA interface has a highly variable response time - sometimes over 15 seconds.   The NOAA site overall appears to go down for minutes at a time, particularly in the early hours of the morning (Eastern Time).  [It is also possible that the NOAA website was recognizing too-frequent requests and throttling us; we never determined that.]   Based on this, we realized we needed to cache a local copy of the forecast, and periodically refresh it.  Had we not learned this early in the project, we would have developed a system which appeared to work in testing, but under higher load would have frequently failed.
 
