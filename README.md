@@ -8,7 +8,7 @@ UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
 
 Our goal is to model demand for taxi and ride service vehicles in New York City.   We are not concerned with actual cab dispatch, but want to predict overall bourough demand (on an hourly basis) so that cab companies and ride hailing services can pre-postition cabs (and cab service staff) at appropriot depots.
 
-We model cab demand as a function of week-of-year, day-of-week, hour-of-day, and weather factors.
+We model cab (and ride-service) demand as a function of week-of-year, day-of-week, hour-of-day, and weather factors.
 
 # Architecture
 
@@ -69,7 +69,7 @@ Tableau will serve data from the ride_prediction table.  The predicted number of
  * for each borough
  * for each hour
  * of the next 6 days  
- 
+
 will be presented (along with appropriate graphs).   Users will also see the UTC timestamp of the last successful fetch of weather forecasts, to be informed in the (unlikely but possible) event that the forecast is out of date.  Our User-story is of a planner deciding how many taxi company vehicles to allocate to each borough, or for a ride hailing service to use to incentivize their drivers to position their private vehicles appropriately.
 
 # Dependencies and operation
@@ -89,7 +89,7 @@ Also used are standard modules, including sys, random, numpy, time, datetime, an
 
 ## One time setup processes
 
-Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey.) These will be used by the point-in-polygon algorithem in ZZZZ.py to identify 
+Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey.) These will be used by the point-in-polygon algorithem in ZZZZ.py to identify
 
 ## Monthly Batch process
 
@@ -124,12 +124,50 @@ We also found other outliers, including rides originating in Las Vegas.   These 
 
 ## Notes on Data Transformation
 
-We followed two parallel paths in determining how to translate the ride pickup location (in decimal lat/long co-ordinates) into borough name.   The first was to use available python modules (including geoPy) which could do reverse lookup.   This was a two stage process:  First lat/long to zip code, then a translation of zip-code to borough and neighborhood.  The modules looked up data from public websites, but also did caching of geospatial information to maintain performance.   Our second method involved using public mapping sites to produce bounding polygons for the boroughs.  This involved a one-time effort, and no "during-analysis" web access.  Library algoritms to do "point-in-polygon" determination were used.   However, we added a speed enhancement to this:   Each datapoint was roughly categorized as "Western," "Northern," or "Southern," and and this initial categorization was used to determine the order in which the detailed polygon match was attempted.   (For example, if a point was Northern, the Bronx and Manhattan polygons wouuld be checked first.  If a point was Western, NJ and Staten Island would be checked first). 
+We followed two parallel paths in determining how to translate the ride pickup location (in decimal lat/long co-ordinates) into borough name.   The first was to use available python modules (including geoPy) which could do reverse lookup.   This was a two stage process:  First lat/long to zip code, then a translation of zip-code to borough and neighborhood.  The modules looked up data from public websites, but also did caching of geospatial information to maintain performance.   Our second method involved using public mapping sites to produce bounding polygons for the boroughs.  This involved a one-time effort, and no "during-analysis" web access.  Library algoritms to do "point-in-polygon" determination were used.   However, we added a speed enhancement to this:   Each datapoint was roughly categorized as "Western," "Northern," or "Southern," and and this initial categorization was used to determine the order in which the detailed polygon match was attempted.   (For example, if a point was Northern, the Bronx and Manhattan polygons wouuld be checked first.  If a point was Western, NJ and Staten Island would be checked first).
 
 The first "geoPy" method had the advantage of giving neighborhood, rather than borough resolution.  (Although the bounding polygon method could have been augmented with smaller neighborhood polygons).   Our current implementation is based on the polygon method, as it gave satisfactory performance, and our use-case only required borough-level geographic resolution.
 
-## Future work, extensions, and challanges
+## Future work and Extensions
 
- If we were developing a nation-wide system, pre-calcualating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
- 
- We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   (This is on contrast to other areas, such as the San Francisco Bay, where there are significant microclimates).   Expansion of the system ot other metro areas might need to account for regional microclimates.
+If we were developing a nation-wide system, pre-calcualating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
+
+We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   (This is on contrast to other areas, such as the San Francisco Bay, where there are significant microclimates).   Expansion of the system to other metro areas might need to account for regional microclimates.
+
+## Observations and notes on the development process
+
+# Checkpointing is important
+
+When working with large datasets (e.g. up to billions of raw records), we had several instances of multi-hour Data Ingress processes fail, resulting in up to half-day development delays.   This occured for several reasons unrelated to hardware failures:  Once when users - not realizing the task was underway, shut down the EC2 instance.  Other times when spark jobs were running with the same application name (which, if not unique in the system, will cause jobs to silently lock up).
+
+# "Mock" databases are important
+
+Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.01, for 1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv probabalistically, rather than by stepping through the file with an interval.  We also incorporated a random seed argument, to assure we could make the decimation repeatable if necessary.
+
+# Rapid prototyping and unit testing are important.
+
+The near-real time element of the project is the fetching of NOAA forecast data for the prediction model.  Early in the project, we mocked up a simple website to drive our "poll of NOAA and parse" functions.  Because this tool made it so easy to repeatedly test the NOAA interface, we found multiple problems:  (1) NOAA actually provides only 6.5 of forecast data for some weather parameters, not 7 days.  We stopped applications from erroring-out by using only the actual valid data (we picked 6 days).  See the figure below, note the missing value for predicted min. temperature on day 7.
+
+![Output of Weather Forecast](ForecastResults.png)  
+
+(2) The NOAA interface has a highly variable response time - sometimes over 15 seconds.   The NOAA site overall appears to go down for minutes at a time, particularly in the early hours of the morning (Eastern Time).  [It is also possible that the NOAA website was recognizing too-frequent requests and throttling us; we never determined that.]   Based on this, we realized we needed to cache a local copy of the forecast, and periodically refresh it.  Had we not learned this early in the project, we would have developed a system which appeared to work in testing, but under higher load would have frequently failed.
+
+# Building the "Steel Thread" end-to-end preliminary version is a good idea.   We didn't do it.
+
+The assignment recommends getting a stripped-down version of the full system ("A Steel Thread") working early on, then adding to it.  We did our integration relatively late, after building ETL and Serving systems.   We did benefit from having mock databases to keep all elements being developed towards the same schema.   But we did have an integration phase at the end of the project which was lengthier than it might have been if we'd integrated earlier.
+
+# Developing features in parallel with competing implementations is good (if resources are available)
+
+One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on a parallel track:   One effort used a set of bounding polygons arouind each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast (120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}), but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
+
+# Look at the raw data, there may be surprises.
+
+A minor issue we found was the presence of a small number of "out-of-new-york-city" pickup locations.   Some were in Las Vegas, others were scattered around the country.  We think this may be from user error in some application (i.e. having the location where the trip was booked, rather than the actual pickup location).
+
+The more profound thing we found:   The number of pickups in all of Staten Island appears to be smaller than the number of "New York" pickups that actually originate in New Jersey.   This finding led us to re-consider the scope of the project; we consider eastern New Jersey to now be in-scope.
+
+Other interesting items in the data (when perusing with HUE and Tableau):   Ridership is greater in the fall than the spring; and passenger loads per cap seem higher during particularly warm or particularly cold weather.
+
+# "Skew" of data size needs to be considered; in-memory hash-joins may be better than general database joins
+
+An hourly prediction of a year's worth of activity is only 8760 elements.   Rather than doing a database join operation, pyspark (with broadcast variables of hashes, or hashes included in the shared functions) may be a better choice.   This was implemented in the hive_borough.py secirpt.
