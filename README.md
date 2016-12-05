@@ -39,12 +39,12 @@ Our customer use case is to plan allocation of taxi/ride-service vehicles to Bor
 
 We obtain this data by using the online SAAS at https://www.itouchmap.com/latlong.html to create bounding polygons for each borough.  Boroughs can be bounded with approximately 20 vertices (with water borders requiring fewer points, and complex street boundaries - such as between Brooklyn and Queens requiring more).  Note:  The points are defined by the project, not by the website, so there are not IP or Terms-of-Use issues.  The New York City government website was used as a reference for the borough borders (http://maps.nyc.gov/doitt/nycitymap/).  
 
-Here is a sample of one of the bounding polygons, for the "pseudo-borough" of Eastern New Jersey.   (Which is obviously not part of New York City, but our analysis showed significant NYC taxi/ride pickups here, so we include it.
+Here is a sample of one of the bounding polygons, for the "pseudo-borough" of Eastern New Jersey.   (Which is obviously not part of New York City, but our analysis showed significant NYC taxi/ride pickups here, so we include it. (See comment in the section "Look at the raw data", below)
 
 
 ![Bounding Polygon for Eastern New Jersey region](NJ_outline.png)
 
-These immutable polygon vertices are used with matplotlib's point-in-polygon library to provide a transform function for pyspark's map-lambda to add borough identifiers to the Ride data.
+These immutable polygon vertices can be used with matplotlib's point-in-polygon library to provide a transform function for pyspark's map-lambda to add borough identifiers to the Ride data.
 
 
 ## 4 - Predictive model, with parameters
@@ -54,7 +54,7 @@ This is produced from the ride/weather data, and placed in a (TBD) table (in pos
 
 ## 5 - Current weather forecast for NYC
 
-This will be pulled every 10 min from NOAA's XML service (http://graphical.weather.gov/xml/sample_products/browser_interface/ndfdBrowserClientByDay.phpusing). Script pf2.py parses the XML and creates a postgres table 6-day weather_prediction.  pf2.py can be run from the command line, but for production will be run via crontab (at 0, 10, 20, 30, 40, 50 min after the hour).  This script cleans the data by translating the mixed 12hr/24hr results into uniform 24 hr. results, and transforming pairs of 12 hr precipitation probabilities into single 24hr probabilities (i.e. the 24 hr. probability is the max of the day and night probabilities).  Timestamps of the XML downloads are also kept, so that "stale" weather data can be identified.  We pull and cache (and transform) the data in this manner because we have observed that the site has a high variance in response time (up to 10s of seconds) and also becomes unavailable for minutes at a time.  This is only a 6 line table ("weather_prediction") so we use postgres.  Attention is paid to using transactions when modifying this table, and per-line timestamps are retained.
+This will be pulled every 10 min from NOAA's XML service (http://graphical.weather.gov/xml/sample_products/browser_interface/ndfdBrowserClientByDay.phpusing). Script forecast_server.py parses the XML and creates a postgres table 6-day weather_prediction.  forecast_server.py can be run from the command line, but for production will be run via start_forecast.py.   This script cleans the data by translating the mixed 12hr/24hr results into uniform 24 hr. results, and transforming pairs of 12 hr precipitation probabilities into single 24hr probabilities (i.e. the 24 hr. probability is the max of the day and night probabilities).  Timestamps of the NOAD downloads are also kept, so that "stale" weather data can be identified.  We pull and cache (and transform) the data in this manner because we have observed that the site has a high variance in response time (up to 10s of seconds) and also becomes unavailable for minutes at a time.  This is only a 6 line table ("weather_prediction") so we use postgres.  Attention is paid to using transactions when modifying this table.
 
 ## 6 - Prediction
 
@@ -66,11 +66,13 @@ Then script ride_prediction.py takes the forecast from postgres table "weather_p
 
 Tableau will serve data from the ride_prediction table.  The predicted number of pickups  
 
- * for each borough
- * for each hour
- * of the next 6 days  
+ * By zipcode
+ * For each hour
+ * For the next 6 days  
 
-will be presented (along with appropriate graphs).   Users will also see the UTC timestamp of the last successful fetch of weather forecasts, to be informed in the (unlikely but possible) event that the forecast is out of date.  Our User-story is of a planner deciding how many taxi company vehicles to allocate to each borough, or for a ride hailing service to use to incentivize their drivers to position their private vehicles appropriately.
+will be presented (along with appropriate graphs).
+
+Users will also see the (UTC) timestamp of the last successful fetch of weather forecasts, to be informed in the event that the forecast is more than a few minutes out of date.  
 
 # Dependencies and operation
 
@@ -89,13 +91,13 @@ Also used are standard modules, including sys, random, numpy, time, datetime, an
 
 ## One time setup processes
 
-Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey.) These will be used by the point-in-polygon algorithem in ZZZZ.py to identify
+Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey) was a one-time only setup. Ultimately we used a different method to perform reverse geomapping - the geoPy module, but we note this here as a one-time step, should it ever be necessary to revert to the bounding polygon method.
 
 ## Monthly Batch process
 
 This may be run (as user w205) via script XXXXX-TBA-XXXXX.py.  The ETL flow is:
 
-1) Load monthly ride data from source (???) .csv files.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
+1) Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
 2) Strip header lines from ride .csv files
 2) Copy into single hive table with consolidated, uniform format for all ride services
 3) Load historical weather from source (???) .csv files
@@ -105,7 +107,7 @@ This may be run (as user w205) via script XXXXX-TBA-XXXXX.py.  The ETL flow is:
 
 ## Periodic results pre-calculation
 
-To speed user access, we pre-cache (every 10 minutes) the results of a 6-day weather forecast from NOAA, parsing it and copying it into postgres table weather_prediction.    This is done from start_forecast.py.   (This is a threaded script, run in background.  An alternative is to run it as a cron job, but this wrapper script was found to have simpler administration).    Note that this is done both for performance and reliablity, as the NOAA site, in our experience, somemtimes is unavailable for several minutes at a time.   With the local copy, results are always available, even if slightly out of date.    (Timestamps are available for the user to be aware if they are seeing "stale" weather forecasts.  In practice, we've never seen a forecast go stale for longer than a single 10 minute interval)
+To speed user access, we pre-cache (every 10 minutes) the results of a 6-day weather forecast from NOAA, parsing it and copying it into postgres table weather_prediction.    This is done from start_forecast.py.   (This is a threaded script, run in background.  An alternative is to run it as a cron job, but this wrapper script was found to have simpler administration).    Note that this is done both for performance and reliability, as the NOAA site, in our experience, somemtimes is unavailable for several minutes at a time.   With the local copy, results are always available, even if slightly out of date.    (Timestamps are available for the user to be aware if they are seeing "stale" weather forecasts.  In practice, we've never seen a forecast go stale for longer than a single 10 minute interval)
 
 In addition to the periodic update of the weather forecast, the ride-utilization model is run every 10 min, providing pre-computed results and eliminating user wait time.    The scope of our problem permits us to pre-calculate for all 5 boroughs plus Eastern New Jersey.  
 
@@ -120,29 +122,31 @@ Results are presented via Tableau from the pre-calculation
 
 We believed our dataset covered New York City originating taxi rides.  However, mid-way though the project, we discovered there were many rides originating outside New York.   In particular, New Jersey had more "New York City" rides that did the borough of Staten Island.   This caused us to adjust the project to also cover an Eastern portion of New Jersey, treating it (for purposes of analysis) as a "pseudo-borough" of New York city.
 
-We also found other outliers, including rides originating in Las Vegas.   These may include use of ride hailing services where the ride was actually booked while in Las Vegase, but we did not pursue further analysis of these, choosing simply to exclude them.  
+We also found other outliers, including rides originating in Las Vegas.   These may include use of ride hailing services where the ride was actually booked while in Las Vegas, but we did not pursue further analysis of these, choosing simply to exclude them.  
 
 ## Notes on Data Transformation
 
-We followed two parallel paths in determining how to translate the ride pickup location (in decimal lat/long co-ordinates) into borough name.   The first was to use available python modules (including geoPy) which could do reverse lookup.   This was a two stage process:  First lat/long to zip code, then a translation of zip-code to borough and neighborhood.  The modules looked up data from public websites, but also did caching of geospatial information to maintain performance.   Our second method involved using public mapping sites to produce bounding polygons for the boroughs.  This involved a one-time effort, and no "during-analysis" web access.  Library algoritms to do "point-in-polygon" determination were used.   However, we added a speed enhancement to this:   Each datapoint was roughly categorized as "Western," "Northern," or "Southern," and and this initial categorization was used to determine the order in which the detailed polygon match was attempted.   (For example, if a point was Northern, the Bronx and Manhattan polygons wouuld be checked first.  If a point was Western, NJ and Staten Island would be checked first).
+We followed two parallel paths in determining how to translate the ride pickup location (in decimal lat/long co-ordinates) into local region.  Our first method involved using public mapping sites to produce bounding polygons for the boroughs.  This involved a one-time effort, and required no web access during later processing.  Library algorithms to do "point-in-polygon" determination were used.  We also added a speed enhancement to this:   Each datapoint was roughly categorized as "Western," "Northern," or "Southern," and this initial categorization was used to determine the order in which the detailed polygon match was attempted.   (For example, if a point was Northern, the Bronx and Manhattan polygons would be checked first.  If a point was Western, NJ and Staten Island would be checked first).
 
-The first "geoPy" method had the advantage of giving neighborhood, rather than borough resolution.  (Although the bounding polygon method could have been augmented with smaller neighborhood polygons).   Our current implementation is based on the polygon method, as it gave satisfactory performance, and our use-case only required borough-level geographic resolution.
+The second was to use available python modules (including geoPy) which could do reverse lookup.   This was a two stage process:  First lat/long to zip code, then a translation of zip-code to borough and neighborhood.  The modules looked up data from public websites, but also did caching of geospatial information to maintain performance.   
+
+The first point-in-polygon was satisfactory with respect to performance, but we are currently using the geoPy/Zipcode method.
 
 ## Future work and Extensions
 
-If we were developing a nation-wide system, pre-calcualating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
+If we were developing a nation-wide system, pre-calculating all the results could be problematic.   Our scope was only 5 boroughs plus New Jersey.  In the case of a later nation-wide expansion, we would likely include a different strategy - either distributing a full pre-calculation over many nodes, or perhaps by caching results for only the largest metro areas, with rural areas calculating only "on-demand" (with a correspondingly lower service-level-agreement on response time).
 
-We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   (This is on contrast to other areas, such as the San Francisco Bay, where there are significant microclimates).   Expansion of the system to other metro areas might need to account for regional microclimates.
+We regarded weather as uniform in our geographical region.   The New York metro area is on the east coast of a continent, and generally has the a uniform weather pattern.   This is on contrast to other areas, such as the San Francisco Bay, where there are significant regional microclimates.   Expansion of the system to other metro areas might need to account for regional microclimates.
 
 ## Observations and notes on the development process
 
 # Checkpointing is important
 
-When working with large datasets (e.g. up to billions of raw records), we had several instances of multi-hour Data Ingress processes fail, resulting in up to half-day development delays.   This occured for several reasons unrelated to hardware failures:  Once when users - not realizing the task was underway, shut down the EC2 instance.  Other times when spark jobs were running with the same application name (which, if not unique in the system, will cause jobs to silently lock up).
+When working with large datasets (e.g. up to billions of raw records), we had several instances of multi-hour Data Ingress processes fail, resulting in up to half-day development delays.   This happened for several reasons:  Once when users - not realizing the task was underway, shut down the EC2 instance.  Other times when spark jobs were running with the same application name (which, if not unique in the system, will cause jobs to silently lock up).
 
-# "Mock" databases are important
+# "Mock" databases (or subsets of larger database) are important
 
-Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.01, for 1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv probabalistically, rather than by stepping through the file with an interval.  We also incorporated a random seed argument, to assure we could make the decimation repeatable if necessary.
+Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.01, for 1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv stochastically, rather than by stepping through the file with an interval.  We also incorporated a random seed argument, to assure we could make the decimation repeatable if necessary.
 
 # Rapid prototyping and unit testing are important.
 
