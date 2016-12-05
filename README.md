@@ -80,6 +80,8 @@ will be presented (along with appropriate graphs).
 
 Users will also see the (UTC) timestamp of the last successful fetch of weather forecasts, to be informed in the event that the forecast is more than a few minutes out of date.  
 
+![Tableau Screenshot](Tableau.png)
+
 # Dependencies and operation
 
 The standard EC2 AMI is used, running on an M3 Large instance.
