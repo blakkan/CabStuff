@@ -5,10 +5,6 @@ date: "December 5, 2016"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # W205Project
 
 UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
