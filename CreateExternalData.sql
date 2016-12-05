@@ -21,9 +21,9 @@ WITH SERDEPROPERTIES (
 STORED AS TEXTFILE
 LOCATION '/user/w205/yellow';
 
---check load
 
-select count(*) from yellow_rides_schema;
+--check load
+--select count(*) from yellow_rides_schema;
 
 
 
@@ -50,12 +50,12 @@ WITH SERDEPROPERTIES (
 STORED AS TEXTFILE
 LOCATION '/user/w205/green';
 
-
-select count(*) from green_rides_schema;
+--check load
+--select count(*) from green_rides_schema;
 
 
 DROP TABLE fhv_rides_schema;
-CREATE EXTERNAL TABLE IF NOT EXISTS green_rides_schema
+CREATE EXTERNAL TABLE IF NOT EXISTS fhv_rides_schema
 (
 Dispatching_base_num int, Pickup_date Date,
 locationID int
@@ -68,4 +68,21 @@ WITH SERDEPROPERTIES (
 )
 STORED AS TEXTFILE
 LOCATION '/user/w205/fhv';
+
+--check zone
+--select count(*) from fhv_rides_schema;
+
+--Used to map FHV rides to neighborhood
+
+DROP TABLE loc_zone_schema;
+CREATE EXTERNAL TABLE IF NOT EXISTS loc_zone_schema
+(location_id int, borough string, zone string)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+"separatorChar" = ",",
+"quoteChar" = '"',
+"escapeChar" = '\\'
+)
+STORED AS TEXTFILE
+LOCATION '/user/w205/support/loc_zone';
 
