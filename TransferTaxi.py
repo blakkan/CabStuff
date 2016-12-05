@@ -2,16 +2,28 @@
 import os
 # putting into the /home/w205
 
-for company in ["yellow", "green", "fhv"]:
-    for year in ["2015", "2016"]:
-        for month in ["07", "08"]:
-        #for month in ["07", "08", "09", "10", "11", "12", "01", "02", "03", "04", "05", "06"]:
-            s3_source_filename = "%s_tripdata_%s-%s.csv" % (company, year, month)
-            local_filename = "%s_%s%s.csv" % (company, year, month)
-            print("Starting transfer from s3 of %s to %s" % (s3_source_filename, local_filename))
-            os.system("wget https://s3.amazonaws.com/nyc-tlc/trip+data/%s --no-check-certificate --no-verbose" % s3_source_filename)
+#yields a list of year and month (in string form)
+def generate_year_months_from(initial_year, initial_month):
+    year = initial_year
+    month = initial_month
+    while True:
+        yield [ str(year), str(month).zfill(2) ]
+        if month >= 12:
+            month = 1
+            year = year + 1
+        else:
+            month = month + 1
 
-            os.system("tail -n +2 %s | python decimate.py 0.001 > %s" % (s3_source_filename, local_filename[0]))
-            os.remove(s3_source_filename)
-            #hdfs dfs -put y_201601.csv /user/w205/yellow
-            #rm y_201601.csv
+for company in ["yellow", "green", "fhv"]:
+    for year_month in generate_year_months_from(2015, 7):
+        if ( year_month[0] == "2016" and year_month[1] == "07"):
+            exit(0)
+        s3_source_filename = "%s_tripdata_%s-%s.csv" % (company, year_month[0], year_month[1])
+        local_filename = "%s_%s%s.csv" % (company[0], year_month[0], year_month[1])
+        print("Starting transfer from s3 of %s to %s" % (s3_source_filename, local_filename))
+        os.system("wget https://s3.amazonaws.com/nyc-tlc/trip+data/%s --no-check-certificate --no-verbose" % s3_source_filename)
+
+        os.system("tail -n +2 %s | python decimate.py 0.001 > %s" % (s3_source_filename, local_filename))
+        os.remove(s3_source_filename)
+        os.system("hdfs dfs -put %s /user/w205/%s" % (local_filename, company) )
+        os.remove(local_filename)
