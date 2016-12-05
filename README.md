@@ -12,14 +12,14 @@ We model cab (and ride-service) demand as a function of week-of-year, day-of-wee
 
 # Architecture
 
-There are seven main pieces:
+There are seven main pieces.  Refer to figure 2.
 
-![Architecture figure](ScaledArchitecturalDrawing2.png)
+![Architecture figure](ScaledArchitecturalDrawing.png)
 
 ## 1 - Ride data ETL
 
 This is consolidated for several taxi/ride-hailing services (in hive).  Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup,
-and number of passengers (for our purposes, fare information, taxes, etc. are not retained)
+and number of passengers.  For our purposes, fare information, taxes, etc. are not retained)
 
 ## 2 - Historical Weather ETL and join to the Ride Data
 
@@ -45,7 +45,7 @@ We obtain this data by using the online SAAS at https://www.itouchmap.com/latlon
 
 Here is a sample of one of the bounding polygons, for the "pseudo-borough" of Eastern New Jersey.   (Which is obviously not part of New York City, but our analysis showed significant NYC taxi/ride pickups here, so we include it. (See comment in the section "Look at the raw data", below)
 
-![Bounding Polygon for Eastern New Jersey region](NJ_outline.png)
+![Bounding Polygon for Eastern New Jersey region](NJ_outline2.png)
 
 These immutable polygon vertices can be used with matplotlib's point-in-polygon library to provide a transform function for pyspark's map-lambda to add borough identifiers to the Ride data.
 
