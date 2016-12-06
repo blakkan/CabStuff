@@ -45,6 +45,6 @@ hour(lpep_pickup_datetime) as pickup_hour,
 count(*) as ride_count
 FROM green_rides_schema
 GROUP BY passenger_count, round(pickup_longitude,6), round(pickup_latitude,6), year(lpep_pickup_datetime), 
-month(lpep_pickup_datetime), dayofmonth(lpep_pickup_datetime), weekofyear(tpep_pickup_datetime), 
-from_unixtime(unix_timestamp(tpep_pickup_datetime),'EEEEE'), hour(lpep_pickup_datetime);
+month(lpep_pickup_datetime), dayofmonth(lpep_pickup_datetime), weekofyear(lpep_pickup_datetime), 
+from_unixtime(unix_timestamp(lpep_pickup_datetime),'EEEEE'), hour(lpep_pickup_datetime);
 
