@@ -1,3 +1,9 @@
+#
+#
+# Test conversion, accumulate in accumulators
+#
+#
+
 from pyspark import SparkContext, SparkConf
 
 from pyspark.sql import SQLContext
@@ -20,6 +26,12 @@ def forceAFloat(s):
 #	.setAppName("My app")
 #	.set("spark.executor.memory", "1g"))
 #sc = SparkContext(conf = conf)
+
+
+#
+# This shares the python files (with their own copies of the hash.. Analogous to
+# a broadcast variable) for conversion
+#
 
 sc = SparkContext("local", "myApp", pyFiles=['borough_finder.py'] )
 sqlContext = SQLContext(sc)
@@ -59,4 +71,3 @@ j.foreach(lambda x: accumHash[x[2]].add(1))
 
 for key, value in accumHash.iteritems():
   print "%s: %d" % ( key, value.value )
-
