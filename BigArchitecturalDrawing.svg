@@ -15,7 +15,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="BigArchitecturalDrawing.svg">
+   sodipodi:docname="BigArchitecturalDrawing.svg"
+   inkscape:export-filename="/home/john/w205/ScaledArchitecturalDrawing.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300">
   <defs
      id="defs4">
     <marker
@@ -150,15 +153,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
-     inkscape:cx="418.41916"
+     inkscape:cx="299.27167"
      inkscape:cy="515.28365"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1574"
      inkscape:window-height="925"
-     inkscape:window-x="253"
-     inkscape:window-y="58"
+     inkscape:window-x="383"
+     inkscape:window-y="346"
      inkscape:window-maximized="0"
      units="in" />
   <metadata
@@ -169,7 +172,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -236,19 +239,6 @@
        y="338.29126"
        inkscape:export-xdpi="36.16"
        inkscape:export-ydpi="36.16" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:100%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="458.46616"
-       y="355.32043"
-       id="text4162-3"
-       sodipodi:linespacing="100%"
-       inkscape:export-xdpi="36.16"
-       inkscape:export-ydpi="36.16"><tspan
-         sodipodi:role="line"
-         x="458.46616"
-         y="355.32043"
-         id="tspan4166-5">Weather HistoryDATA</tspan></text>
     <g
        id="g4316"
        transform="matrix(0.5,0,0,0.5,295.25,137.93111)"
@@ -316,15 +306,15 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:100%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="456.16455"
-       y="413.1813"
+       x="461.82138"
+       y="355.19855"
        id="text4162-3-7"
        sodipodi:linespacing="100%"
        inkscape:export-xdpi="36.16"
        inkscape:export-ydpi="36.16"><tspan
          sodipodi:role="line"
-         x="456.16455"
-         y="413.1813"
+         x="461.82138"
+         y="355.19855"
          id="tspan4166-5-4">GeoSpatial (geoPy)</tspan></text>
     <rect
        style="fill:#e6e6e6;fill-opacity:1;stroke:#000000;stroke-width:0.4295544;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -412,7 +402,7 @@
          sodipodi:role="line"
          id="tspan4886"
          x="339.25"
-         y="414.11221">Intermedia step</tspan></text>
+         y="414.11221">Intermediate step</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:100%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -720,5 +710,18 @@
          x="-735.7821"
          y="273.82739"
          id="tspan7505">(User Requests)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:100%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="455.63773"
+       y="414.71738"
+       id="text4162-3"
+       sodipodi:linespacing="100%"
+       inkscape:export-xdpi="36.16"
+       inkscape:export-ydpi="36.16"><tspan
+         sodipodi:role="line"
+         x="455.63773"
+         y="414.71738"
+         id="tspan4166-5">Weather HistoryDATA</tspan></text>
   </g>
 </svg>
