@@ -1,3 +1,10 @@
+---
+title: "Taxis in the Mist: Predicting Ride Demand"
+author: "John Blakkan, Rohit Nair, Andrea Pope"
+date: "December 5, 2016"
+output: pdf_document
+---
+
 # W205Project
 
 UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
@@ -18,17 +25,22 @@ There are seven main pieces.  Refer to figure 2.
 
 ## 1 - Ride data ETL
 
-The ride data ETL consolidates .csv files provided monthly by taxi/ride service into hive tables.  There are three sets of .csv files, for yellow cab, green cab, and FHV (For Hire Vehicles). CSV files are initially loaded to HDFS using TransferTaxi.py. During intial runs, separate .sh script files were created for each type of taxi (yellow, green, and fhv - see supporting files). Although less efficient, this allowed closer monitoring and gathering of statistics directly during each file load. The python approach is the final approach, providing efficiency both in code and time.  The image below details the raw historical data file formats:
-![Raw Data figure](RawData.png)
+The ride data ETL consolidates .csv files provided monthly by taxi/ride service into hive tables.  There are three sets of .csv files, for yellow cab, green cab, and FHV (For Hire Vehicles). CSV files are initially loaded to HDFS using TransferTaxi.py. During intial runs, separate .sh script files were created for each type of taxi (yellow, green, and fhv - see supporting files). Although less efficient, this allowed closer monitoring and gathering of statistics directly during each file load. The python approach is the final approach, providing efficiency both in code and time.  
 
-With the data files in HDFS, external schema tables are created in hive, using the CreateExternalData.sql. This follows the formatting provided by the NYC Taxi Commission. Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup, and number of passengers.   (For our purposes, fare information, taxes, etc. are not retained.). An additional table is included which stores a location/borough map for the FHV records. Note, not all of the FHV records had a location associated with them.  These are dropped by the program.
-
-With the external tables complete, the transformation begins. The records are aggregated into a single table for yellow and green cabs. This work is represented in the file load_rides_yg.py.  We aggregate to ride source, latitude/longitude, pickup hour/day/month/year, and passenger count. We sum the total rides for against each distinct key. In this python script, we are running the transformation by ride_source and month. We also split the record selection (select statement) and insert into the master table into separate steps. This was for performance reasons. Alternative to this python approach, full loads can be attempted using the file "transforming". However, for a full data set, this is not recommended for performance reasons.  In the following steps, longitude/latitude will be used to identify the zipcode for each ride.
-
-The FHV data is added directly to the rides_weather final summary table. In this data set, we are grouping by pickup hour/day/month/year, but have a location at a borough level. This is provided via a location/borough map as provided by the NYC Taxi and Limousine Commision. It is important to note again that not all records have a location id. These were not included, as we could not attribute the ride to a specific borough.
+With the data files in HDFS, external schema tables are created in hive, using the CreateExternalData.sql. This follows the formatting provided by the NYC Taxi Commission. Fundamental fields are:   Date/Time of pickup, Lat/Long location of pickup, and number of passengers.   (For our purposes, fare information, taxes, etc. are not retained.)
 
 
-## 2 - Local Region Identification transformation of Ride data
+## 2 - Historical Weather ETL and join to the Ride Data
+
+This is joined to the ride data, giving historical ride data with weather (in hive, as measured at NY LaGuardia Airport).  We obtained this data from NOAA at https://www.ncdc.noaa.gov/cdo-web/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather is updated).    NOAA requires this data be accessed by a request for data return by an automated email system.
+
+The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted).  Snowfall is accounted as rainfall in a 10:1 ratio (i.e. 10mm of snow = 1mm of rain).   Fields used are: Date, Total Precipitation (in tenths of mm), Daily Max temp (F), and Daily Min temp (F).
+
+We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report (with 24-hr max/min temp and precipition) per day.
+
+Pyspark map/lambda is used to perform this hash-join.
+
+## 3 - Local Region Identification transformation of Ride data
 
 Our customer use case is to plan allocation of taxi/ride-service vehicles to smaller retions of NYC, such as zip-codes or boroughs, so the lat/long co-ordinates in the Ride Data must be converted.  
 
@@ -44,21 +56,11 @@ These polygon vertices can be used with matplotlib's point-in-polygon library to
 
 Later in the project we determined our preferred method, however.  We currently use the geoPy module for reverse geocoding.  We were initially concerned that, because this module delegates reverse geocoding to a variety of online services, that it would be too slow for our volume of data.   However, the module's internal caching of co-ordinates ultimately proved to have acceptable performance.
 
+
 The data flow for steps 1 - 3 (historical ride and weather ETL and joining) are illustrated in Figure 4.
 
 ![Historical Data Flow figure](HistoricalDataFlow.png)
 
-This is also a good time to point out that the data approach is not normalized, and in fact, we are repeating data across some tables. As the primary (and only) use of this historical data set is for reading (no updating, deleting, etc), this approach speeds our tasks throughout.
-
-## 3 - Historical Weather ETL and join to the Ride Data
-
-This is joined to the ride data, giving historical ride data with weather (in hive, as measured at NY LaGuardia Airport).  We obtained this data from NOAA at https://www.ncdc.noaa.gov/cdo-web/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather is updated).    NOAA requires this data be accessed by a request for data return by an automated email system.
-
-The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted).  Snowfall is accounted as rainfall in a 10:1 ratio (i.e. 10mm of snow = 1mm of rain).   Fields used are: Date, Total Precipitation (in tenths of mm), Daily Max temp (F), and Daily Min temp (F).
-
-We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report (with 24-hr max/min temp and precipition) per day.
-
-Pyspark map/lambda is used to perform this hash-join.
 
 ## 4 - Predictive model, with parameters
 

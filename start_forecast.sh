@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./forecast_server.py &
+./forecast_server.py $1 &

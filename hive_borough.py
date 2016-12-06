@@ -20,7 +20,7 @@ the_time = time.time()
 
 
 
-sc = SparkContext("local", "demo app")
+sc = SparkContext("local", "AddBoroug")
 
 sqlContext = HiveContext(sc)
 
