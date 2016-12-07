@@ -38,11 +38,11 @@ Yellow/Green data with zip codes added, and FHV data is added in using the SQL f
 
 ## 2 - Local Region Identification transformation of Ride data
 
-Our customer use case is to plan allocation of taxi/ride-service vehicles to smaller retions of NYC, such as zip-codes or boroughs, so the lat/long co-ordinates in the Ride Data must be converted.  
+Our customer use case is to plan allocation of taxi/ride-service vehicles to smaller regions of NYC, such as zip-codes or boroughs, so the lat/long co-ordinates in the Ride Data must be converted.  
 
-We initially did this with resolution to to the borough level in pyspark, with script hive_borough.py.  hive_borough.py, in turn runs borough_finder.py on each row of the ride data.  Borough_finder.py (including its table of borough-bounding-polygons) is distributed by pyspark to all potential parallel processes (much like broadcast variables). See the test script longlat_convert.py for example use (inculding counts using pyspark accumulator variables).  In effect, this script is perfforming a hash join not directly with data, but with the output of a function on the data (i.e. lat/long to borough name conversion).
+We initially did this with resolution to the borough level in pyspark, with script hive_borough.py.  hive_borough.py, in turn runs borough_finder.py on each row of the ride data.  Borough_finder.py (including its table of borough-bounding-polygons) is distributed by pyspark to all potential parallel processes (much like broadcast variables). See the test script longlat_convert.py for example use (including counts using pyspark accumulator variables).  In effect, this script is performing a hash join not directly with data, but with the output of a function on the data (i.e. lat/long to borough name conversion).
 
-The lat/long to borough function uses bourough-bounding polygons created by using using the online mapping SAAS at https://www.itouchmap.com/latlong.html.  Boroughs can be bounded with approximately 20 vertices, with water borders requiring fewer points, and complex street boundaries - such as between Brooklyn and Queens - requiring more. The points are defined by the project, not by the website, so there are not IP or Terms-of-Use issues.  The New York City government website was used as a reference for the borough borders (http://maps.nyc.gov/doitt/nycitymap/).  
+The lat/long to borough function uses borough-bounding polygons created by using the online mapping SAAS at https://www.itouchmap.com/latlong.html.  Boroughs can be bounded with approximately 20 vertices, with water borders requiring fewer points, and complex street boundaries - such as between Brooklyn and Queens - requiring more. The points are defined by the project, not by the website, so there are not IP or Terms-of-Use issues.  The New York City government website was used as a reference for the borough borders (http://maps.nyc.gov/doitt/nycitymap/).  
 
 Here is a sample of one of the bounding polygons, for the "pseudo-borough" of Eastern New Jersey.   While obviously not part of New York City, our analysis showed significant NYC taxi/ride pickups here, so we include it. See also the comment in the section "Look at the raw data", below.
 
@@ -57,6 +57,7 @@ The data flow for steps 1 - 3 (historical ride and weather ETL and joining) are 
 ![Historical Data Flow figure](HistoricalDataFlow.png)
 
 The data approach is not normalized, and in fact, we are repeating data across some tables. As the primary (and only) use of this historical data set is for reading (no updating, deleting, etc), this approach speeds our tasks throughout, at the cost of some extra disk space.
+
 
 ## 3 - Historical Weather ETL and join to the Ride Data
 
