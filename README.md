@@ -8,7 +8,7 @@ UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
 
 Our goal is to model demand for taxi and ride service vehicles in New York City.   We are not concerned with actual cab dispatch, but want to predict overall bourough demand (on an hourly basis) so that cab companies and ride hailing services can pre-postition cabs (and cab service staff) at appropriate depots.
 
-We model cab (and ride-service) demand as a function of week-of-year, day-of-week, hour-of-day, and weather factors.
+We forecast cab (and ride-service) demand as a function of zipcode, ride type (yellow/green), month, day-of-month, day-of-week, temperature, precipition, windspeed and features that are combination of these.
 
 # Architecture
 
@@ -55,18 +55,17 @@ The data approach is not normalized, and in fact, we are repeating data across s
 
 ## 3 - Historical Weather ETL and join to the Ride Data
 
-This is joined to the ride data in hive, giving historical ride data with weather. Historical weather measurements are those from the NY LaGuardia Airport weather station.  We obtained this data from NOAA at https://www.ncdc.noaa.gov/cdo-web/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather forcast is updated). NOAA requires this data be accessed by a request for data return by an automated email reply system.
+This is joined to the ride data in hive, giving historical ride data with weather. Historical weather measurements are those from the NY Central Park weather station.  We obtained this data from NOAA at ftp://ftp.ncdc.noaa.gov/pub/data/gsod/2016/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather forecast is updated). This data can be pulled in from the NOAA ftp server.
 
-The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted).  Snowfall is accounted as rainfall in a 10:1 ratio (i.e. 10mm of snow = 1mm of rain).   Fields used are: Date, Total Precipitation (in tenths of mm), Daily Max temp (F), and Daily Min temp (F).
+The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted). Fields used are: Date, Total Precipitation (in tenths of mm), Daily Mean temp (F), and Windspeed. The script downloadWeatherDataGSOD.sh downloads the weather data from the ftp server, parses and transforms the data and uploads it into HDFS. "create_ny_weather_schema.sql" script is ran to create the "ny_weather" table.
 
-We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report - with 24hr max/min temp and precipition - per day.
+We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report - with 24hr max/min temp and precipition - per day. We extract this data into csv format for model training.
 
 Pyspark map/lambda is used to perform this hash-join.
 
-## 4 - Predictive model, with parameters
+## 4 - Prediction model
 
-
-This is produced from the ride/weather data, and placed in a (TBD) table (in postgres).
+Based on historical demand for cab services, we developed a prediction model to forecast demand for a particular cab service at a zipcode/borough for a given or day. A Stochastic Gradient Descent(SGD) Regression model was trained on two years worth of data which was split into training and validation set. Two independent models were trained for yellow and green cabs separately as they differ in demand and hence ensemble model approach provide better accuracy. The features used were ride type, zipcode, month, day-of-month, month-of-year, mean temperature, precipition, windspeed and a combination of these features. Combination of features were used as we rightly assumed that there will be variation in demand, such as, high demand on weekdays in financial district while higher demand for cabs during weekends from tourist attractions. Further we took into account effect of rainfall or snow in taxi demand. To address the variation in temperature, it was split into 'Cold', 'Normal', 'Hot'. This along with zipcode and ride type were treated as categorical features. To deal with these features, a Dictionary Vectorizer was used which split them into one-vs-all features. These vectorized features were fed into the regression model and trained for 8,000 iterations and the loss was plotted against number of iteration. The loss function plateaued faster for Green cab compared to Yellow. When ran against the cross-validation set, the model for Green cab performed better (R<sup>2</sup>: 0.92) compared to Yellow (R<sup>2</sup>: 0.89). The trained model is persisted as a pickle file which can be conveniently loaded to run predictions.
 
 
 ## 5 - Current weather forecast for NYC
@@ -75,7 +74,7 @@ This is pulled every 10 min from NOAA's XML service (http://graphical.weather.go
 
 ## 6 - Prediction
 
-The script ride_prediction.py takes the forecast from the postgres table weather_prediction and the model parameters from postgres table TBD, and produces postgres table ride_prediction.   ride_prediction.py can be run from the command line, but for production will be run via crontab (at 5, 15, 25, 35, 45, and 55 min after the hour).  The output of this table is: For each of 5 boroughs, for each of 6 days, for each hour in each day, a predicted number of large taxis (4 or more passengers) and small vehicles (3 or fewer passengers).  The timestamp of the weather_forecast used to generate the prediction is also passed through, so the user can verify the age of the forecast used for the predictions.
+The script zip_ride_prediction.py contains the logic to generate forecast for the next 6 days using the weather forecast from "weather_forecast" table and geo-coding from "zipcode_neighborhood_borough". The script retrieves the input data for the prediction by cross joining weather forecast with the zipcode-borough mapping. The model and vectorizer is picked from the persisted pickle file and ran against the input. This produces an integer value that represents the number of forecasted cab per zipcode per day. We use this daily forecast data along with hourly demand curve per zipcode to get hourly forecasted demand for taxis. The daily and hourly forecasted data is stored in the postgres tables as  "zip_ride_prediction" and "hourly_zip_ride_prediction" along with the model run timestamp. "zip_ride_prediction.py" can be run from the command line, but for production will be run via crontab (at 5, 15, 25, 35, 45, and 55 min after the hour).
 
 ## 7 - Tableau presentation
 
@@ -102,6 +101,7 @@ The standard EC2 AMI is used, running on an M3 Large instance.
 * urllib - fetching the real-time weather forecasts from the NOAA XML server
 * geopy - reverse geocoding (in some versions of the application, and for research/analysis)
 * lxml - XML parsing of the NOAA real-time weather forecast.
+* scikit-learn - machine learning package
 
 Also used are standard modules, including sys, random, numpy, time, datetime, and threading (used for the weather forecast periodic fetch)
 
