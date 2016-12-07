@@ -83,18 +83,6 @@ This is pulled every 10 min from NOAA's XML service (http://graphical.weather.go
 The script zip_ride_prediction.py contains the logic to generate forecast for the next 6 days using the weather forecast from "weather_forecast" table and geo-coding from "zipcode_neighborhood_borough". The script retrieves the input data for the prediction by cross joining weather forecast with the zipcode-borough mapping. The model and vectorizer is picked from the persisted pickle file and ran against the input. This produces an integer value that represents the number of forecasted cab per zipcode per day. We use this daily forecast data along with hourly demand curve per zipcode to get hourly forecasted demand for taxis. The daily and hourly forecasted data is stored in the postgres tables as  "zip_ride_prediction" and "hourly_zip_ride_prediction" along with the model run timestamp. "zip_ride_prediction.py" can be run from the command line, but for production will be run via crontab (at 5, 15, 25, 35, 45, and 55 min after the hour).
 
 ## 7 - Tableau presentation
-Tabbleau allows for analysis and discovery with the historical data file, and provides an interface to review predictions for future ride needs, incorporating the results from the prediction model run against the most recent weather forecast.
-There are 4 primary data sources:
- - Historical data at hour/zipcode/passenger count level (yellow and green cabs only...not available for FHV). This data was included to add additional detail (beyond borough and neighborhood). (It is important to note, that in NYC, there are over 100 distinct zip codes. Each borough neighborhood has several zip codes.
- - Historical data at hour/borough/passenger count (yellow, green and fhv). This data is mapped to historical weather data, including the max, min temp, and total precipitation on the day of the ride.
- - Ride Prediction - predicts rides (yellow or green) for each hour for the next 6 days (following 6 day weather forecast)
- 
-Historical Data Dashboard:
-![Tableau Screenshot-History](Tableau-History.png)
-
-Prediction Dashboard:
-![Tableau Screenshot-Predict](Tableau-Predict.png)
-
 Tableau allows for analysis and discovery with the historical data file, and provides an interface to review predictions for future ride needs, incorporating the results from the prediction model run against the most recent weather forecast.
 There are 4 primary data sources:
 From HIVE:
