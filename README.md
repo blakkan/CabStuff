@@ -6,9 +6,10 @@ UCB W205 Group Project by John Blakkan, Rohit Nair, Andrea Pope
 
 # Purpose and use-cases
 
-Our goal is to model demand for taxi and ride service vehicles in New York City.   We are not concerned with actual cab dispatch, but want to predict overall bourough demand (on an hourly basis) so that cab companies and ride hailing services can pre-postition cabs (and cab service staff) at appropriate depots.
+Our goal is to model demand for taxi and ride service vehicles in New York City.   We are not concerned with actual cab dispatch, but want to predict overall borough demand (on an hourly basis) so that cab companies and ride hailing services can pre-position cabs (and cab service staff) at appropriate depots.
 
-We forecast cab (and ride-service) demand as a function of zipcode, ride type (yellow/green), month, day-of-month, day-of-week, temperature, precipition, windspeed and features that are combination of these.
+We forecast cab (and ride-service) demand as a function of zip code, ride type (yellow/green), month, day-of-month, day-of-week, temperature, precipitation, wind speed and features that are combination of these.
+
 
 # Architecture
 
@@ -18,9 +19,10 @@ There are seven main pieces.  Refer to figure 2.
 
 ## 1 - Ride data Extract-Transform-Load
 
-The ride data ETL retrieves monthly ride data .csv files from amazon s3 and copies them into hive tables.  For development use, there are options in the process to pull over only a subset of the data. There are three sets of monthly .csv files, for yellow cab, green cab, and FHV ["For Hire Vehicles" which are nominally summoned by phone, not hailed on the street.
+The ride data ETL retrieves monthly ride data .csv files from amazon s3 and copies them into hive tables.  For development use, there are options in the process to pull over only a subset of the data. There are three sets of monthly .csv files, for yellow cab, green cab, and FHV ("For Hire Vehicles") which are nominally summoned by phone, not hailed on the street.
 
-CSV files are initially loaded to HDFS using TransferTaxi.py script.  During early development we had separate scripts for loading each of the three types (yellow, green, and FHV) of cabs.  This allowed closer monitoring and gathering of statistics directly during each file load. Later, as the load process stabilized, we adopted a single-python-script approach, providing efficiency both in code and time.  The image below details the raw historical data file formats:
+CSV files are initially loaded to HDFS using TransferTaxi.py script.  During early development, we had separate scripts for loading each of the three types (yellow, green, and FHV) of cabs.  This allowed closer monitoring and gathering of statistics directly during each file load. Later, as the load process stabilized, we adopted a single-python-script approach, providing efficiency both in code and time.  The image below details the raw historical data file formats:
+
 
 ![Raw Data figure](RawData.png)
 
