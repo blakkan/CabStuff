@@ -146,7 +146,7 @@ Determine bounding polygons in lat/long co-ordinate system for the five boroughs
 
 The ETL flow is:
 
-1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
+1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additional month's data will need to be fetched).
 2. Strip header lines from ride .csv files
 3. Copy into single hive table with consolidated, uniform format for all ride services
 4. Load historical weather from source  nyGSODWeather.csv files
@@ -203,7 +203,7 @@ When working with large datasets - i.e. billions of raw records - we had several
 
 ## "Mock" databases (or subsets of larger database) are important
 
-Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.001, for 0.1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv stochastically, rather than by stepping through the file with an interval.  If decimate.py is instead given an integer argument greater than 1 (i.e. 2000), it operates differently- it simply pulls over the number of characters specified by the integer argument, trims off any incomplete lines, and uses the remainder to make a super-tiny, non-representative .csv file for process testing.   (i.e. specifying 2000 characters yeilds around 12 lines of .csv)
+Even the monthly partitions of the databases are large enough that some steps will require many minutes of processing during the development phase.  It was useful to be able to reduce the size of the input .csv files to greatly reduce the time taken by development test runs.   To facilitate this, we produced a small script called "decimate.py."   It takes an argument indicating what proportion of the .csv lines in a file to retain (we often used 0.001, for 0.1%).  Because we didn't want our sampling to possibly correlate with any data sequence feature, decimate.py sieves out lines of a .csv stochastically, rather than by stepping through the file with an interval.  If decimate.py is instead given an integer argument greater than 1 (i.e. 2000), it operates differently- it simply pulls over the number of characters specified by the integer argument, trims off any incomplete lines, and uses the remainder to make a super-tiny, non-representative .csv file for process testing.   (i.e. specifying 2000 characters yields around 12 lines of .csv)
 
 ## Rapid prototyping and unit testing are important.
 
@@ -213,19 +213,19 @@ The near-real time element of the project is the fetching of NOAA forecast data 
 
 The second major problem is that the NOAA interface has a highly variable response time - sometimes over 15 seconds.   The NOAA site overall appears to go down for minutes at a time, particularly in the early hours of the morning (Eastern Time).  [It is also possible that the NOAA website was recognizing too-frequent requests and throttling us.]   Based on this, we realized we needed to cache a local copy of the forecast, and periodically refresh it.  Had we not learned this early in the project, we would have developed a system which appeared to work in testing, but under higher load would have frequently failed.
 
-## Building the "Steel Thread" end-to-end preliminary version is a good idea.   We didn't do it.
+## Building the "Steel Thread" end-to-end preliminary version is a good idea.   We didn't do it (enough).
 
-The assignment recommends getting a stripped-down version of the full system ("A Steel Thread") working early on, then adding to it.  We did our integration relatively late, after building ETL and Serving systems. We did benefit from having mock databases to keep all elements being developed towards the same schema.   But we did have an integration phase at the end of the project which was lengthier than it might have been if we'd integrated earlier.
+The assignment recommends getting a stripped-down version of the full system ("A Steel Thread") working early on, then adding to it. We originally decided to work with 1 year of data, as a subset to test our processes. But this was still too large. We should have picked something much more “thread-like”, for example 0.1% of the records. We did our integration relatively late, after building ETL and Serving systems. We did benefit from having mock databases to keep all elements being developed towards the same schema.   But we did have an integration phase at the end of the project which was lengthier than it might have been if we'd integrated earlier.
 
 ## Parallel development of competing implementations is good (if resources are available)
 
-One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on two parallel tracks:   One effort used a set of bounding polygons arouind each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast - 120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}) - but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
+One of the fundamental features of our project was the need for reverse geocoding.  Our ride pickup data was all in lat/long co-ordinates.  We needed to translate this into borough names.  We _preferred_ to translate it down to zip-code resolution (i.e. neighborhoods).  We proceeded on two parallel tracks:   One effort used a set of bounding polygons around each borough, then used in-memory calculation of point-in-polygon (using pyspark, and shared user defined functions shared between all worker instances - see borough_finder.py and hive_borough_demo.py).  It was fast - 120 million conversions and writes to table in 48 min {with perhaps a third of that time in extraneous debugging output}) - but our preferred solution was to use the geoPy module to convert to zip-code resolution.  geoPy caches locations, so ultimately was the solution we used was geoPy.
 
 ## Look at the raw data, there may be surprises.
 
 A minor issue we found was the presence of a small number of "out-of-new-york-city" pickup locations.   Some were in Las Vegas, others were scattered around the country.  We think this may be from user error in some application (i.e. having the location where the trip was booked, rather than the actual pickup location).
 
-The more profound thing we found:  The number of pickups in all of Staten Island appears to be smaller than the number of pickups that originate in New Jersey.   This finding led us to re-consider the scope of the project; we decided to include a portion of New Jersy as within our projects's geographcial scope.
+The more profound thing we found:  The number of pickups in all of Staten Island appears to be smaller than the number of pickups that originate in New Jersey.   This finding led us to re-consider the scope of the project; we decided to include a portion of New Jersey as within our project's geographical scope.
 
 Other interesting items in the data (when perusing with HUE and Tableau):   Ridership is greater in the fall than the spring; and passenger loads per cap seem higher during particularly warm or particularly cold weather.
 
