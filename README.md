@@ -77,7 +77,7 @@ This is pulled every 10 min from NOAA's XML service (http://graphical.weather.go
 The script zip_ride_prediction.py contains the logic to generate forecast for the next 6 days using the weather forecast from "weather_forecast" table and geo-coding from "zipcode_neighborhood_borough". The script retrieves the input data for the prediction by cross joining weather forecast with the zipcode-borough mapping. The model and vectorizer is picked from the persisted pickle file and ran against the input. This produces an integer value that represents the number of forecasted cab per zipcode per day. We use this daily forecast data along with hourly demand curve per zipcode to get hourly forecasted demand for taxis. The daily and hourly forecasted data is stored in the postgres tables as  "zip_ride_prediction" and "hourly_zip_ride_prediction" along with the model run timestamp. "zip_ride_prediction.py" can be run from the command line, but for production will be run via crontab (at 5, 15, 25, 35, 45, and 55 min after the hour).
 
 ## 7 - Tableau presentation
-
+Tabbleau allows for analysis and discovery within the historical data file, but also 
 Tableau will serve data from the ride_prediction table.  The predicted number of pickups is mapped with predictions
 
  * By Borough
@@ -88,7 +88,10 @@ will be presented (along with appropriate graphs).
 
 Users will also see the (UTC) timestamp of the last successful fetch of weather forecasts, to be informed in the event that the forecast is more than a few minutes out of date.  
 
-![Tableau Screenshot](Tableau.png)
+![Tableau Screenshot-History](Tableau-History.png)
+
+
+![Tableau Screenshot-Predict](Tableau-Prediction.png)
 
 # Dependencies and operation
 
