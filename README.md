@@ -149,10 +149,12 @@ The ETL flow is:
 1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
 2. Strip header lines from ride .csv files
 3. Copy into single hive table with consolidated, uniform format for all ride services
-4. Load historical weather from source (???) .csv files
+4. Load historical weather from source  nyGSODWeather.csv files
 5. Strip header lines from weather .csv file
-6. Hive join of weather onto ride data, based on date, creating table: XXXXX_XXX_XXX
-7. Use borough_finder pyspark porgram to  (spark-submit XXXXX.py) to convert lat/long information in XXXXX_XXX_XXX into borough names in hive table YYYY_YYYY
+6. Use borough_finder pyspark porgram to  to convert lat/long information into borough names in hive table rides_yg_with_boroug
+7. Hive join of weather onto ride data, based on date, creating table: rides_weather
+
+
 
 ## Periodic results pre-calculation
 
