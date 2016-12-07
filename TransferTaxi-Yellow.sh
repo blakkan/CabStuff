@@ -151,6 +151,7 @@ rm yellow_tripdata_2014-06.csv
 hdfs dfs -put y_201406.csv /user/w205/yellow
 rm y_201406.csv
 
+#***
 wget https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2014-07.csv
 tail -n +2 "yellow_tripdata_2014-07.csv" > "y_201407.csv"
 rm yellow_tripdata_2014-07.csv
