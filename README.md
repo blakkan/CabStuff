@@ -89,6 +89,35 @@ Historical Data Dashboard:
 Prediction Dashboard:
 ![Tableau Screenshot-Predict](Tableau-Predict.png)
 
+Tableau allows for analysis and discovery with the historical data file, and provides an interface to review predictions for future ride needs, incorporating the results from the prediction model run against the most recent weather forecast.
+There are 4 primary data sources:
+From HIVE:
+ - Historical data at hour/zip code/passenger count level (yellow and green cabs only...not available for FHV). This data was included to add additional detail (beyond borough and neighborhood). (It is important to note, that in NYC, there are over 100 distinct zip codes. Each borough neighborhood has several zip codes.
+ - Historical data at hour/borough/passenger count (yellow, green and fhv). This data is mapped to historical weather data, including the max, min temp, and total precipitation on the day of the ride.
+ From POSTGRES:
+ - Ride Prediction - predicts rides (yellow or green) for each hour for the next 6 days (following 6-day weather forecast)
+  - Weather Forecast - simple table with the 6-day weather forecast
+
+
+Historical Data Dashboard:
+![Tableau Screenshot-History](Tableau-History.png)
+
+Prediction Dashboard:
+![Tableau Screenshot-Predict](Tableau-Predict.png)
+
+For this project, the Tableau workbook is zipped together with extracts (TDE) files of the datasources at the time of last running. However, the structure is in place to connect directly to running instances of HIVE and POSTGRES. The specific instance identification would need to be updated, but it will read the correct tables and do any additional calculations automatically.
+
+There are 12 views included in the workbook, and 10 of them are included in 3 dashboards. The other 2 are for reference purposes. The dashboards can also be found on Tableau Public (with snapshot data) at:
+Historical Dashboard:
+https://public.tableau.com/profile/publish/NYCTaxi-Analysis/NYCTaxiLimoDash#!/publish-confirm
+Predicting Dashboard:
+https://public.tableau.com/profile/publish/NYCTaxi-Analysis/Predicting#!/publish-confirm
+Prediction Details (Data Table):
+https://public.tableau.com/profile/publish/NYCTaxi-Analysis/PredictionDetailswFilters#!/publish-confirm
+
+Tableau Public does not allow connections to HIVE or Postgres. In this case, it is using Tableau extract files. In a real-world situation, the views and dashboard may be best served via Tableau Server. It would depend on the number of consumers of the reports. If it was a single user, a single production license connecting to the environment may be sufficient. For multiple users, Tableau Server may be beneficial.
+
+
 # Dependencies and operation
 
 The standard EC2 AMI is used, running on an M3 Large instance.
