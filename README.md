@@ -84,10 +84,11 @@ The script zip_ride_prediction.py contains the logic to generate forecast for th
 
 ## 7 - Tableau presentation
 Tableau allows for analysis and discovery with the historical data file, and provides an interface to review predictions for future ride needs, incorporating the results from the prediction model run against the most recent weather forecast.
+
 There are 4 primary data sources:
 
 From HIVE:
- - Historical data at hour/zip code/passenger count level (yellow and green cabs only...not available for FHV). This data was included to add additional detail (beyond borough and neighborhood). (It is important to note, that in NYC, there are over 100 distinct zip codes. Each borough neighborhood has several zip codes.
+ - Historical data at hour/zip code/passenger count level (yellow and green cabs only...not available for FHV). This data was included to add additional detail (beyond borough and neighborhood). It is important to note, that in NYC, there are over 100 distinct zip codes. Each borough neighborhood has several zip codes.
  - Historical data at hour/borough/passenger count (yellow, green and fhv). This data is mapped to historical weather data, including the max, min temp, and total precipitation on the day of the ride.
 
 From POSTGRES:
@@ -95,10 +96,16 @@ From POSTGRES:
   - Weather Forecast - simple table with the 6-day weather forecast
 
 
-Historical Data Dashboard:
+###Historical Data Dashboard:
+
+
 ![Tableau Screenshot-History](Tableau-History.png)
 
-Prediction Dashboard:
+
+
+###Prediction Dashboard:
+
+
 ![Tableau Screenshot-Predict](Tableau-Predict.png)
 
 For this project, the Tableau workbook is zipped together with extracts (TDE) files of the datasources at the time of last running. However, the structure is in place to connect directly to running instances of HIVE and POSTGRES. The specific instance identification would need to be updated, but it will read the correct tables and do any additional calculations automatically.
