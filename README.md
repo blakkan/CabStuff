@@ -61,13 +61,14 @@ The data approach is not normalized, and in fact, we are repeating data across s
 
 ## 3 - Historical Weather ETL and join to the Ride Data
 
-This is joined to the ride data in hive, giving historical ride data with weather. Historical weather measurements are those from the NY Central Park weather station.  We obtained this data from NOAA at ftp://ftp.ncdc.noaa.gov/pub/data/gsod/2016/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather forecast is updated). This data can be pulled in from the NOAA ftp server.
+Weather data is joined to the ride data in hive, giving historical ride data with weather. Historical weather measurements are those from the NY Central Park weather station. We obtained this data from NOAA at ftp://ftp.ncdc.noaa.gov/pub/data/gsod/2016/. Since we use this only for model building (a batch process), we only need to pull it when the model is updated (e.g. not when current weather forecast is updated). This data can be pulled in from the NOAA ftp server.
+The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted). Fields used are: Date, Total Precipitation (in tenths of mm), Daily Mean temp (F), and Wind speed. The script downloadWeatherDataGSOD.sh downloads the weather data from the ftp server, parses and transforms the data and uploads it into HDFS. "create_ny_weather_schema.sql" script is ran to create the "ny_weather" table.
 
-The data (received in .csv form) are lightly transformed (in excel or equivalent, although this could be scripted). Fields used are: Date, Total Precipitation (in tenths of mm), Daily Mean temp (F), and Windspeed. The script downloadWeatherDataGSOD.sh downloads the weather data from the ftp server, parses and transforms the data and uploads it into HDFS. "create_ny_weather_schema.sql" script is ran to create the "ny_weather" table.
-
-We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report - with 24hr max/min temp and precipition - per day. We extract this data into csv format for model training.
-
+We implement a hash-join to join weather information to the ride data with pyspark code because the daily weather data is very small compared to the ride pickup table (i.e. there are many taxi pickups per day, but we only have one overall weather report - with 24hr max/min temperature and precipitation - per day. We extract this data into csv format for model training.
 Pyspark map/lambda is used to perform this hash-join.
+
+As a side note, this was also completed initially using .sql, as represented in the Transform-Rides-2.py file. Using consolidated ride data (at zip/hour level), the amount of joining was reduced. 
+
 
 ## 4 - Prediction model
 
