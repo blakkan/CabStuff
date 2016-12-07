@@ -118,16 +118,16 @@ Also used are standard modules, including sys, random, numpy, time, datetime, an
 Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey) was a one-time only setup. Ultimately we used a different method to perform reverse geomapping - the geoPy module, but we note this here as a one-time step, should it ever be necessary to revert to the bounding polygon method.
 
 ## Monthly Batch process
+The ETL flow is:
 
-This may be run (as user w205) via script XXXXX-TBA-XXXXX.py.  The ETL flow is:
-
-1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
+1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additional month's data will need to be fetched).
 2. Strip header lines from ride .csv files
 3. Copy into single hive table with consolidated, uniform format for all ride services
-4. Load historical weather from source (???) .csv files
+4. Load historical weather from nyGSODWeather.csv files
 5. Strip header lines from weather .csv file
-6. Hive join of weather onto ride data, based on date, creating table: XXXXX_XXX_XXX
-7. Use borough_finder pyspark porgram to  (spark-submit XXXXX.py) to convert lat/long information in XXXXX_XXX_XXX into borough names in hive table YYYY_YYYY
+6. Use borough_finder pyspark porgram to  to convert lat/long information to zipcodes and borough names in hive table
+7. Hive join (via Transform-Rides2) of weather onto ride data, based on date, creating table: ride_weather (also where FHV data is added) 
+
 
 ## Periodic results pre-calculation
 
