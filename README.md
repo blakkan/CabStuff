@@ -85,10 +85,12 @@ The script zip_ride_prediction.py contains the logic to generate forecast for th
 ## 7 - Tableau presentation
 Tableau allows for analysis and discovery with the historical data file, and provides an interface to review predictions for future ride needs, incorporating the results from the prediction model run against the most recent weather forecast.
 There are 4 primary data sources:
+
 From HIVE:
  - Historical data at hour/zip code/passenger count level (yellow and green cabs only...not available for FHV). This data was included to add additional detail (beyond borough and neighborhood). (It is important to note, that in NYC, there are over 100 distinct zip codes. Each borough neighborhood has several zip codes.
  - Historical data at hour/borough/passenger count (yellow, green and fhv). This data is mapped to historical weather data, including the max, min temp, and total precipitation on the day of the ride.
- From POSTGRES:
+
+From POSTGRES:
  - Ride Prediction - predicts rides (yellow or green) for each hour for the next 6 days (following 6-day weather forecast)
   - Weather Forecast - simple table with the 6-day weather forecast
 
