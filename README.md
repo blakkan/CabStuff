@@ -140,11 +140,11 @@ Also used are standard modules, including sys, random, numpy, time, datetime, an
 
 ## One time setup processes
 
-Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey) was a one-time only setup. Ultimately we used a different method to perform reverse geomapping - the geoPy module, but we note this here as a one-time step, should it ever be necessary to revert to the bounding polygon method.
+Determine bounding polygons in lat/long co-ordinate system for the five boroughs of New York City (plus a region of Eastern New Jersey) was a one-time only setup. Ultimately, we used a different method to perform reverse geomapping - the geoPy module, but we note this here as a one-time step, should it ever be necessary to revert to the bounding polygon method.
 
 ## Monthly Batch process
 
-This may be run (as user w205) via script XXXXX-TBA-XXXXX.py.  The ETL flow is:
+The ETL flow is:
 
 1. Load monthly ride data from source .csv files on Amazon S3.   We're currently using July 1, 2014 to June 30, 2016 as our model training period.  (If users choose to retain the raw .csv files, each month only one additiional month's data will need to be fetched).
 2. Strip header lines from ride .csv files
